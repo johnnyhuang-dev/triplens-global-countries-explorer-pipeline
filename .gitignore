@@ -7,3 +7,4 @@ plugins
 tests
 airflow_settings.yaml
 __pycache__
+logs
