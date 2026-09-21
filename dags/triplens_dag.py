@@ -4,6 +4,7 @@ from airflow import DAG
 from airflow.sdk import task
 
 from include.extract import upload
+from include.load import load_minio_to_snowflake
 
 default_args = {
     'owner': 'orproja',
@@ -15,13 +16,15 @@ default_args = {
 }
 
 @task
-def extract_api_data():
-    api_response = upload()
+def extract_data_to_s3():
+    upload()
 
-    return api_response
+@task
+def load_data_to_snowflake():
+    load_minio_to_snowflake()
 
 with DAG(dag_id='triplens_dag',
          catchup=False,
          default_args=default_args):
 
-    extract_api_data()
+    extract_data_to_s3() >> load_data_to_snowflake()

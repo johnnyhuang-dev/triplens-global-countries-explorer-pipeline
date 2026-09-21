@@ -77,5 +77,3 @@ def upload():
         print(f"An error occurred: {e}")
 
     return None
-
-upload()
