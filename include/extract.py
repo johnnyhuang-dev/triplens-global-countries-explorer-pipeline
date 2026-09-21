@@ -2,13 +2,14 @@ import requests
 from dotenv import load_dotenv
 import os
 import json
-from pathlib import Path
+import io
 from minio import Minio
 from minio.error import S3Error
 
 load_dotenv()
 
 API_KEY=os.getenv("API_KEY")
+MINIO_ACCOUNT=os.getenv("MINIO_ACCOUNT")
 MINIO_KEY=os.getenv("MINIO_KEY")
 BASE_URL='https://api.restcountries.com/countries/v5'
 
@@ -23,9 +24,8 @@ def request_api():
 
         # Upload raw countries data from API to MinIO bucket in JSON format
         if response.status_code == 200:
-            with open("sample_country.json", "w") as fn:
-                json.dump(response.json(), fn, indent=2) # Add API data to a new JSON file
-                print("Successfully added JSON data into new json file")
+            data = response.json()
+            print("Successfully added JSON data into new json file")
 
         else:
             print(f"API Error Response: {response.text}")
@@ -33,22 +33,21 @@ def request_api():
     except Exception as e:
         print(e)
 
-    return None
+    return data
 
 def upload():
 
-    # request_api()
+    data = request_api()
 
-    location = Path(__file__).resolve().parent # Location (folder name) where this file belongs
+    data = json.dumps(data, ensure_ascii=False).encode("utf-8")
 
-    project_root = location.parent # Name of the project's folder
-
-    LOCAL_FILE_PATH = project_root / "sample_country.json"
+    # Wrap data bytes in BytesIO to give it a .read() method
+    data_stream = io.BytesIO(data)
 
     # Initialize the client
     client = Minio(
-        endpoint="host.docker.internal:9000",       
-        access_key="adminadmin",    
+        endpoint="localhost:9000",       
+        access_key=MINIO_ACCOUNT,    
         secret_key=MINIO_KEY,    
         secure=False 
     )
@@ -65,22 +64,18 @@ def upload():
             print(f"Bucket '{bucket_name}' already exists.")
 
         # Upload a local file to the bucket
-        client.fput_object(
+        client.put_object(
             bucket_name=bucket_name,
             object_name=object_name,
-            file_path=LOCAL_FILE_PATH
+            data=data_stream,
+            content_type="application/json",
+            length=len(data)
         )
         print("File uploaded successfully")
-
-        # Download the file back down to verify
-        client.fget_object(
-            bucket_name=bucket_name,
-            object_name=object_name,
-            file_path=LOCAL_FILE_PATH
-        )
-        print("File downloaded successfully!")
 
     except S3Error as e:
         print(f"An error occurred: {e}")
 
     return None
+
+upload()
