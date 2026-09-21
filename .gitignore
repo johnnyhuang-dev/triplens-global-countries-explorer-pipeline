@@ -1,4 +1,10 @@
 .venv
 .env
-docker-compose.yaml
+docker-compose.override.yml
 *.json
+.astro
+plugins
+tests
+airflow_settings.yaml
+__pycache__
+logs
