@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: rest_countries
+    database: RAW
+    schema: STAGE_ZONE
+    tables:
+      - name: STG_COUNTRIES_RAW
