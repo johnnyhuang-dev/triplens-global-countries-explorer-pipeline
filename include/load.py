@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import boto3
 from snowflake.connector import connect
 from pathlib import Path
+from botocore.config import Config
 
 load_dotenv()
 
@@ -30,13 +31,15 @@ conn = connect(
 
 cursor = conn.cursor()
 
+my_config = Config(signature_version="s3v4")
+
 # Setup boto3 client
 s3_client = boto3.client(
     "s3",
     endpoint_url=minio_endpoint,
     aws_access_key_id=MINIO_ACCOUNT,
     aws_secret_access_key=MINIO_KEY,
-    config=boto3.session.Config(signature_version="s3v4"), # Sets signature version of boto3 to MinIO compatible one
+    config=my_config, # Sets signature version of boto3 to MinIO compatible one
     verify=False
 )
 
@@ -49,7 +52,7 @@ def load_minio_to_snowflake() -> None:
 
     local_temp_file = location / file_name
 
-    s3_client.download_file(minio_bucket, minio_object, local_temp_file)
+    s3_client.download_file(Bucket=minio_bucket, Key=minio_object, Filename=local_temp_file)
     print("Downloaded temporary json file from MinIO")
 
     try:

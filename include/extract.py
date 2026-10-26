@@ -25,7 +25,7 @@ def request_api():
         # Upload raw countries data from API to MinIO bucket in JSON format
         if response.status_code == 200:
             data = response.json()
-            print("Successfully added JSON data into new json file")
+            print("Successfully extracted JSON data")
 
         else:
             print(f"API Error Response: {response.text}")
