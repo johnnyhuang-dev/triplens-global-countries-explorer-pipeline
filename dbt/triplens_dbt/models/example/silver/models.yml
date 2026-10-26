@@ -1,0 +1,12 @@
+models:
+  - name: dim_countries
+    columns:
+      - name: country_name
+        data_tests:
+          - unique
+          - not_null
+      - name: official_name
+        data_tests:
+          - relationships:
+            to: ref('stg_countries')
+            field: customer_id
